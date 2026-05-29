@@ -1,3 +1,5 @@
+![NAP](public/image.png)
+
 # NAP — Local AI Desktop Assistant
 
 A Windows desktop AI assistant that captures highlighted text via a global hotkey and explains it using a local Ollama LLM, displayed in a futuristic floating popup centered on screen.
