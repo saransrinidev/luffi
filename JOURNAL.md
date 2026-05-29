@@ -1,8 +1,8 @@
-# NAP — Project Journal
+# Luffi — Project Journal
 
-## What is NAP?
+## What is Luffi?
 
-NAP (short name, clean name) is a **local AI desktop assistant for Windows**. You highlight any text anywhere on your screen, press a hotkey, and a futuristic popup appears with an AI-generated explanation — all running locally, no cloud, no API keys, no internet needed.
+Luffi is a **local AI desktop assistant for Windows**. You highlight any text anywhere on your screen, press a hotkey, and a futuristic popup appears with an AI-generated explanation — all running locally, no cloud, no API keys, no internet needed.
 
 ---
 

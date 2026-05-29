@@ -1,6 +1,7 @@
 import uvicorn
 import logging
 import threading
+import signal
 import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="NAP Backend", version="0.2.0")
+app = FastAPI(title="Luffi Backend", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,13 +32,12 @@ app.add_middleware(
 
 app.include_router(router)
 
-# Shared services
 model_service = ModelService()
 
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("NAP Backend starting up...")
+    logger.info("Luffi Backend starting up...")
 
     # Start hotkey listener
     hotkey_service = HotkeyService()
@@ -55,4 +55,11 @@ async def startup_event():
 
 
 if __name__ == "__main__":
+    # Ignore SIGINT in main thread so Ctrl+C doesn't kill the server
+    # Use Ctrl+Break or close terminal to stop instead
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+    print("\n🚀 Luffi Backend starting...")
+    print("   Stop with: Ctrl+Break or close this terminal\n")
+
     uvicorn.run("main:app", host=settings.host, port=settings.port, reload=False)

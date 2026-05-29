@@ -5,6 +5,7 @@ import logging
 from services.llm_service import LLMService
 from services.prompt_service import PromptService
 from services.history_service import HistoryService
+from services.agent_service import AgentService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -12,6 +13,7 @@ router = APIRouter()
 llm_service = LLMService()
 prompt_service = PromptService()
 history_service = HistoryService()
+agent_service = AgentService()
 
 
 class ExplainRequest(BaseModel):
@@ -32,7 +34,7 @@ class ExplainResponse(BaseModel):
 
 @router.get("/health")
 async def health():
-    return {"status": "ok", "service": "nap-backend"}
+    return {"status": "ok", "service": "luffi-backend"}
 
 
 @router.get("/modes")
@@ -87,3 +89,17 @@ async def cache_stats():
 async def clear_cache():
     llm_service.cache.clear()
     return {"status": "cache cleared"}
+
+
+class AgentRequest(BaseModel):
+    command: str
+
+
+@router.post("/agent")
+async def run_agent(request: AgentRequest):
+    if not request.command.strip():
+        raise HTTPException(status_code=400, detail="Command cannot be empty")
+
+    logger.info(f"[Agent] Command: {request.command}")
+    result = agent_service.execute_command(request.command)
+    return {"result": result, "command": request.command}

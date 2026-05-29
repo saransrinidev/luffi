@@ -1,4 +1,4 @@
-"""Pull all required Ollama models for NAP SLM architecture."""
+"""Pull all required Ollama models for Luffi SLM architecture."""
 import subprocess
 import sys
 
@@ -21,7 +21,7 @@ def pull_model(model: str):
 
 
 if __name__ == "__main__":
-    print("🚀 NAP SLM Model Setup\n")
+    print("🚀 Luffi SLM Model Setup\n")
     print("This will download the models needed for fast inference.\n")
 
     for model in MODELS:

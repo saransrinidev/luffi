@@ -1,6 +1,6 @@
-![NAP](public/image.png)
+![Luffi](public/image.png)
 
-# NAP — Local AI Desktop Assistant
+# Luffi — Local AI Desktop Assistant
 
 A Windows desktop AI assistant that captures highlighted text via a global hotkey and explains it using a local Ollama LLM, displayed in a futuristic floating popup centered on screen.
 
@@ -37,6 +37,5 @@ python main.py
 
 ## Models Supported
 
-- llama3.2:3b
-- phi4-mini
-- gemma3
+- llama3.2:1b (fast tier)
+- llama3.2:3b (medium tier)

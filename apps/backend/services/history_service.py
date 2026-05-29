@@ -5,7 +5,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = Path(__file__).parent.parent / "nap_history.db"
+DB_PATH = Path(__file__).parent.parent / "luffi_history.db"
 
 
 class HistoryService:

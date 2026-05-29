@@ -36,13 +36,13 @@ class TrayService:
 
     def _run(self):
         menu = Menu(
-            MenuItem("NAP — AI Assistant", None, enabled=False),
+            MenuItem("Luffi — AI Assistant", None, enabled=False),
             Menu.SEPARATOR,
             MenuItem("Switch Model", self._switch_model),
             MenuItem("Quit", self._quit),
         )
 
-        self.icon = Icon("NAP", self._create_icon_image(), "NAP", menu)
+        self.icon = Icon("Luffi", self._create_icon_image(), "Luffi", menu)
         logger.info("System tray icon started")
         self.icon.run()
 

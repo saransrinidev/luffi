@@ -20,7 +20,7 @@ class PopupService:
     """
 
     @staticmethod
-    def show(text: str, title: str = "NAP"):
+    def show(text: str, title: str = "Luffi"):
         """Show or update the popup with new content."""
         global _popup_thread
 
@@ -72,7 +72,7 @@ class PopupService:
         header.pack_propagate(False)
 
         title_font = tkfont.Font(family="Consolas", size=9, weight="bold")
-        title_label = tk.Label(header, text="NAP", font=title_font,
+        title_label = tk.Label(header, text="Luffi", font=title_font,
                                fg=title_color, bg="#1a1a1a", anchor="w", padx=10)
         title_label.pack(side="left", fill="y")
 
