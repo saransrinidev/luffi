@@ -50,7 +50,7 @@ class HotkeyService:
             return
 
         print(f"📋 Captured: {text[:80]}...")
-        PopupService.show(f"⏳ {label}...\n\nThinking...", title=f"NAP · {label}")
+        PopupService.show("⏳ Thinking...", title=f"NAP · {label}")
 
         thread = threading.Thread(
             target=self._get_explanation, args=(text, mode, label), daemon=True
@@ -69,9 +69,17 @@ class HotkeyService:
                 data = response.json()
                 explanation = data["explanation"]
                 model = data["model_used"]
-                print(f"✅ [{label}] Done ({model})\n")
+                latency = data.get("latency_ms", 0)
+                tok_s = data.get("tokens_per_sec", 0)
+                cached = data.get("from_cache", False)
+
+                speed_tag = "⚡CACHED" if cached else f"{latency:.0f}ms · {tok_s} tok/s"
+                print(f"✅ [{label}] {speed_tag} ({model})\n")
                 winsound.Beep(2000, 100)
-                PopupService.show(explanation, title=f"NAP · {label} · {model}")
+                PopupService.show(
+                    explanation,
+                    title=f"NAP · {label} · {model} · {speed_tag}",
+                )
             else:
                 winsound.Beep(400, 300)
                 PopupService.show(f"❌ Error: API returned {response.status_code}")

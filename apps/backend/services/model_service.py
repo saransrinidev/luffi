@@ -7,9 +7,8 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 AVAILABLE_MODELS = [
+    "llama3.2:1b",
     "llama3.2:3b",
-    "phi4-mini",
-    "gemma3",
 ]
 
 

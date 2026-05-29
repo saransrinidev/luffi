@@ -24,6 +24,10 @@ class ExplainResponse(BaseModel):
     explanation: str
     model_used: str
     mode: str
+    from_cache: bool = False
+    latency_ms: float = 0
+    tokens_generated: int = 0
+    tokens_per_sec: float = 0
 
 
 @router.get("/health")
@@ -72,3 +76,14 @@ async def search_history(q: str, limit: int = 10):
 async def clear_history():
     history_service.clear()
     return {"status": "cleared"}
+
+
+@router.get("/cache/stats")
+async def cache_stats():
+    return llm_service.cache.stats
+
+
+@router.delete("/cache")
+async def clear_cache():
+    llm_service.cache.clear()
+    return {"status": "cache cleared"}
