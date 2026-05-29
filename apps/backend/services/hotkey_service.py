@@ -57,7 +57,11 @@ class HotkeyService:
     def _process_command(self, user_prompt: str):
         """Process the user's free-form command."""
         print(f"💬 Command: {user_prompt}")
-        PopupService.show("⏳ Processing...", title="Luffi · Ask")
+
+        # Don't show big popup for agent commands — status bar handles it
+        intent = self.command_service.detect_intent(user_prompt)
+        if intent != "agent":
+            PopupService.show("⏳ Processing...", title="Luffi · Ask")
 
         thread = threading.Thread(
             target=self._execute_command, args=(user_prompt,), daemon=True
@@ -72,14 +76,11 @@ class HotkeyService:
         # AGENT MODE — desktop automation
         if intent == "agent":
             print(f"🤖 Agent mode: {user_prompt}")
-            PopupService.show("🤖 Agent executing...", title="Luffi · Agent")
 
-            def on_status(msg):
-                print(f"   {msg}")
-                PopupService.show(msg, title="Luffi · Agent")
-
-            result = self.agent_service.execute_command(user_prompt, on_status=on_status)
+            # No big popup during agent — uses small status bar instead
+            result = self.agent_service.execute_command(user_prompt)
             winsound.Beep(2000, 100)
+            # Show final result in big popup
             PopupService.show(result, title="Luffi · Agent · Done")
             return
 

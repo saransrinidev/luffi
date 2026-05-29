@@ -55,9 +55,14 @@ async def startup_event():
 
 
 if __name__ == "__main__":
-    # Ignore SIGINT in main thread so Ctrl+C doesn't kill the server
-    # Use Ctrl+Break or close terminal to stop instead
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    # Ignore SIGINT so Ctrl+C doesn't kill the server
+    # Stop with: Ctrl+Break or close this terminal
+    import os
+    if os.name == "nt":
+        # On Windows, disable Ctrl+C handler entirely
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleCtrlHandler(None, True)
 
     print("\n🚀 Luffi Backend starting...")
     print("   Stop with: Ctrl+Break or close this terminal\n")
