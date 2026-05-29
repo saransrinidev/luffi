@@ -1,9 +1,29 @@
+# Core
 fastapi==0.115.6
 uvicorn==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+python-dotenv==1.0.1
+
+# Hotkeys & Automation
 keyboard==0.13.5
 pyautogui==0.9.54
 pyperclip==1.9.0
+
+# HTTP
 httpx==0.28.1
-python-dotenv==1.0.1
-pydantic==2.10.4
-pydantic-settings==2.7.1
+
+# System Tray
+pystray==0.19.5
+Pillow==11.1.0
+
+# Context Detection (Windows)
+pywin32==308
+psutil==6.1.1
+
+# OCR (optional — install if needed)
+# easyocr==1.7.2
+
+# Voice (optional — install if needed)
+# openai-whisper==20240930
+# pyaudio==0.2.14

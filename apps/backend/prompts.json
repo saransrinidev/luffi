@@ -1,0 +1,27 @@
+{
+  "explain": {
+    "hotkey": "ctrl+;",
+    "label": "Explain",
+    "prompt": "You are a helpful assistant. Explain the following text clearly and concisely. If it's code, explain what it does. If it's a concept, define it simply.\n\nText: {text}"
+  },
+  "translate": {
+    "hotkey": "ctrl+'",
+    "label": "Translate",
+    "prompt": "Translate the following text to English. If it's already in English, translate it to Spanish. Provide only the translation, nothing else.\n\nText: {text}"
+  },
+  "summarize": {
+    "hotkey": "ctrl+/",
+    "label": "Summarize",
+    "prompt": "Summarize the following text in 2-3 concise bullet points. Be brief and capture the key points only.\n\nText: {text}"
+  },
+  "code_review": {
+    "hotkey": "ctrl+shift+/",
+    "label": "Code Review",
+    "prompt": "Review the following code. Point out bugs, improvements, and best practices. Be concise and actionable.\n\nCode:\n{text}"
+  },
+  "eli5": {
+    "hotkey": "ctrl+shift+'",
+    "label": "ELI5",
+    "prompt": "Explain the following like I'm 5 years old. Use simple words and analogies.\n\nText: {text}"
+  }
+}
