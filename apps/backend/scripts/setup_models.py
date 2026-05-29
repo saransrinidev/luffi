@@ -4,7 +4,8 @@ import sys
 
 MODELS = [
     "llama3.2:1b",   # Fast tier — simple lookups, translations
-    "llama3.2:3b",   # Medium + Heavy tier — everything else
+    "llama3.2:3b",   # Medium tier — explanations
+    "qwen2.5:7b",   # Agent tier — desktop automation, structured output
 ]
 
 

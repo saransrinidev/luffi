@@ -102,7 +102,7 @@ $elements = $ae.FindAll([System.Windows.Automation.TreeScope]::Descendants, $con
 
 $count = 0
 foreach ($el in $elements) {
-    if ($count -ge 20) { break }
+    if ($count -ge 60) { break }
     try {
         $name = $el.Current.Name
         $ctrlType = $el.Current.ControlType.ProgrammaticName -replace "ControlType.", ""
