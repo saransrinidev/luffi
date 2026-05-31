@@ -59,11 +59,25 @@ class AgentOrchestrator:
         self.decision_layer = DecisionLayer()
         self.execution_layer = ExecutionLayer()
         self.verification_layer = VerificationLayer()
+        # Planner for compound/unknown tasks
+        from agent.planner_layer import PlannerLayer
+        from agent.skill_executor import SkillExecutor
+        self.planner_layer = PlannerLayer()
+        self.skill_executor = SkillExecutor()
 
     def run(self, command: str) -> str:
         """Execute a user command through the layered pipeline."""
         run_log = RunLog(command)
         StatusBarService.show(f"🤖 {command[:40]}")
+
+        # === Check for compound command FIRST ===
+        # If it has multiple actions joined by "and"/"then", use the planner
+        if self._is_compound(command):
+            run_log.log("router", "compound_detected")
+            print("   🧩 Compound command — using Planner")
+            result = self._execute_with_planner(command, run_log)
+            StatusBarService.hide()
+            return result
 
         # === Layer 1: Intent ===
         StatusBarService.show("📝 Understanding...")
@@ -87,13 +101,77 @@ class AgentOrchestrator:
             StatusBarService.hide()
             return result
 
-        # === No template — use UI perception + LLM decision ===
+        # === No template — use Planner Layer (decompose into skills) ===
         run_log.log("template", "no_match")
-        print("   🔄 No template — using UI perception")
+        print("   🧩 No template — using Planner")
 
-        result = self._execute_with_perception(intent, run_log)
+        result = self._execute_with_planner(command, run_log)
         StatusBarService.hide()
         return result
+
+    def _is_compound(self, command: str) -> bool:
+        """
+        Detect if a command has multiple actions.
+        Compound = has 'and'/'then' joining action verbs.
+        Single browser/calculator templates handle their own 'and'.
+        """
+        lower = command.lower()
+
+        # Browser search / calculator templates handle "and" internally
+        # (e.g. "open firefox and search youtube" is a single template)
+        template_phrases = [
+            "and search", "and go to", "and navigate", "and calculate",
+            "and compute",
+        ]
+        # If it's a known template "and", let template engine handle it
+        if any(p in lower for p in template_phrases):
+            # But only if there's no SECOND "and" after it (truly compound)
+            and_count = lower.count(" and ")
+            then_count = lower.count(" then ")
+            if and_count + then_count <= 1:
+                return False
+
+        # Action verbs that indicate separate steps
+        action_verbs = ["write", "type", "save", "click", "open", "close",
+                        "press", "select", "copy", "paste", "delete", "create"]
+
+        # Count how many action verbs appear
+        verb_count = sum(1 for v in action_verbs if v in lower.split())
+
+        # Compound if joined by and/then AND has 2+ actions
+        has_connector = " and " in lower or " then " in lower
+        return has_connector and verb_count >= 2
+
+    def _execute_with_planner(self, command: str, run_log: RunLog) -> str:
+        """Use the planner to decompose the command into atomic skills."""
+        StatusBarService.show("🧩 Planning steps...")
+        steps = self.planner_layer.plan(command)
+
+        if not steps:
+            run_log.log("planner", "no_plan")
+            # Fall back to single-element perception
+            print("   ⚠️ Planner failed — trying perception")
+            intent = self.intent_layer.extract(command)
+            return self._execute_with_perception(intent, run_log)
+
+        run_log.log("planner", "planned", {"steps": len(steps)})
+        print(f"   🧩 Plan: {len(steps)} steps")
+        for s in steps:
+            print(f"      → {s}")
+
+        def on_step(i, step):
+            msg = f"▶ {i+1}: {step}"
+            StatusBarService.show(msg)
+            print(f"   {msg}")
+            run_log.log("skill", str(step))
+
+        results = self.skill_executor.execute_plan(steps, on_step=on_step)
+
+        summary = "\n".join(f"  {r}" for r in results)
+        success = all(r.success for r in results)
+        status = "✅ Done" if success else "⚠️ Partial"
+        return f"{status}\n\nSteps:\n{summary}"
+
 
     def _execute_template(self, template_result, run_log: RunLog) -> str:
         """Execute a template's action sequence."""

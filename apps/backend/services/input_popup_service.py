@@ -1,24 +1,25 @@
+"""
+Input Box — professional monochrome command bar.
+Opens on hotkey, user types, presses Enter.
+"""
 import threading
 import logging
 import tkinter as tk
 from tkinter import font as tkfont
-import queue
+
+from services import theme as T
+from services.theme import Icon
 
 logger = logging.getLogger(__name__)
 
-_input_queue = queue.Queue()
 _result_callback = None
 
 
 class InputPopupService:
-    """
-    CMD-style input box popup. Opens on hotkey, user types a prompt,
-    presses Enter, and it gets processed.
-    """
+    """Monochrome command input bar."""
 
     @staticmethod
     def show(callback):
-        """Show input popup. callback(text) is called when user submits."""
         global _result_callback
         _result_callback = callback
         thread = threading.Thread(target=InputPopupService._create_input, daemon=False)
@@ -29,69 +30,58 @@ class InputPopupService:
         root = tk.Tk()
         root.overrideredirect(True)
         root.attributes("-topmost", True)
-        root.attributes("-alpha", 0.92)
+        root.attributes("-alpha", T.ALPHA)
 
-        bg_color = "#0c0c0c"
-        input_bg = "#1a1a1a"
-        text_color = "#cccccc"
-        accent = "#16c60c"
-        border_color = "#333333"
-
-        width = 600
-        height = 120
-        screen_w = root.winfo_screenwidth()
-        screen_h = root.winfo_screenheight()
-        x = (screen_w - width) // 2
-        y = (screen_h - height) // 2
+        width, height = 620, 110
+        sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+        x = (sw - width) // 2
+        y = (sh - height) // 3
         root.geometry(f"{width}x{height}+{x}+{y}")
-        root.configure(bg=bg_color)
+        root.configure(bg=T.BG)
 
-        # Border
-        outer = tk.Frame(root, bg=bg_color, highlightbackground=border_color,
-                         highlightthickness=1, bd=0)
+        outer = tk.Frame(root, bg=T.BG, highlightbackground=T.BORDER,
+                         highlightthickness=1)
         outer.pack(fill="both", expand=True)
 
         # Header
-        header = tk.Frame(outer, bg="#1a1a1a", height=28)
+        header = tk.Frame(outer, bg=T.PANEL, height=30)
         header.pack(fill="x")
         header.pack_propagate(False)
 
-        title_font = tkfont.Font(family="Consolas", size=9, weight="bold")
-        tk.Label(header, text="Luffi > Ask anything...", font=title_font,
-                 fg=accent, bg="#1a1a1a", padx=10).pack(side="left", fill="y")
+        title_font = tkfont.Font(family=T.FONT_MAIN, size=10, weight="bold")
+        tk.Label(header, text=f"{Icon.LOGO}  Ask Luffi", font=title_font,
+                 fg=T.WHITE, bg=T.PANEL, padx=14).pack(side="left", fill="y")
 
-        # Close
-        close_btn = tk.Label(header, text=" X ", font=title_font,
-                             fg="#666666", bg="#1a1a1a", cursor="hand2")
-        close_btn.pack(side="right", padx=4)
+        close_btn = tk.Label(header, text=Icon.CLOSE, font=title_font,
+                             fg=T.TEXT_MUTED, bg=T.PANEL, cursor="hand2", padx=10)
+        close_btn.pack(side="right", fill="y")
         close_btn.bind("<Button-1>", lambda e: root.destroy())
+        close_btn.bind("<Enter>", lambda e: close_btn.config(fg=T.WHITE))
+        close_btn.bind("<Leave>", lambda e: close_btn.config(fg=T.TEXT_MUTED))
 
-        # Input area
-        input_frame = tk.Frame(outer, bg=bg_color)
-        input_frame.pack(fill="both", expand=True, padx=12, pady=8)
+        # Input row
+        input_frame = tk.Frame(outer, bg=T.BG)
+        input_frame.pack(fill="both", expand=True, padx=16, pady=10)
 
-        # Prompt symbol
-        prompt_font = tkfont.Font(family="Consolas", size=11)
-        tk.Label(input_frame, text=">", font=prompt_font,
-                 fg=accent, bg=bg_color).pack(side="left", padx=(0, 6))
+        prompt_font = tkfont.Font(family=T.FONT_MAIN, size=14, weight="bold")
+        tk.Label(input_frame, text=Icon.ASK, font=prompt_font,
+                 fg=T.WHITE, bg=T.BG).pack(side="left", padx=(0, 10))
 
-        # Input entry
-        input_font = tkfont.Font(family="Consolas", size=11)
+        input_font = tkfont.Font(family=T.FONT_MAIN, size=13)
         entry = tk.Entry(
             input_frame, font=input_font,
-            fg=text_color, bg=input_bg, bd=0,
-            highlightthickness=1, highlightbackground="#333333",
-            highlightcolor=accent,
-            insertbackground=accent,
-            selectbackground="#264f78",
+            fg=T.TEXT, bg=T.CARD, bd=0,
+            highlightthickness=1, highlightbackground=T.BORDER,
+            highlightcolor=T.WHITE, insertbackground=T.WHITE,
+            selectbackground=T.PANEL_HOVER,
         )
-        entry.pack(fill="both", expand=True, ipady=6)
+        entry.pack(fill="both", expand=True, ipady=8, ipadx=8)
         entry.focus_force()
 
-        # Hint
-        hint_font = tkfont.Font(family="Consolas", size=7)
-        tk.Label(outer, text=" ENTER submit | ESC cancel | Try: 'screenshot and summarize' or 'analyse this page'",
-                 font=hint_font, fg="#444444", bg=bg_color).pack(side="bottom", anchor="w", padx=12, pady=(0, 4))
+        hint_font = tkfont.Font(family=T.FONT_MAIN, size=8)
+        tk.Label(outer, text="Enter to run    ·    Esc to cancel",
+                 font=hint_font, fg=T.TEXT_MUTED, bg=T.BG).pack(
+            side="bottom", anchor="w", padx=16, pady=(0, 6))
 
         def submit(e=None):
             text = entry.get().strip()
@@ -102,17 +92,13 @@ class InputPopupService:
         entry.bind("<Return>", submit)
         root.bind("<Escape>", lambda e: root.destroy())
 
-        # Draggable header
+        # Drag
         drag = {"x": 0, "y": 0}
-
-        def start_drag(e):
-            drag["x"] = e.x
-            drag["y"] = e.y
-
-        def do_drag(e):
+        def start(e):
+            drag["x"], drag["y"] = e.x, e.y
+        def move(e):
             root.geometry(f"+{root.winfo_x() + e.x - drag['x']}+{root.winfo_y() + e.y - drag['y']}")
-
-        header.bind("<Button-1>", start_drag)
-        header.bind("<B1-Motion>", do_drag)
+        header.bind("<Button-1>", start)
+        header.bind("<B1-Motion>", move)
 
         root.mainloop()

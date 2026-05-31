@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     slm_fast_model: str = "llama3.2:1b"       # Tiny model for simple tasks
     slm_medium_model: str = "llama3.2:3b"     # Default for most tasks
     slm_heavy_model: str = "llama3.2:3b"      # Same as medium (no extra download)
-    slm_agent_model: str = "qwen2.5:7b"      # Agent — needs structured output
+    slm_agent_model: str = "llama3.2:3b"     # Agent (use qwen2.5:7b if installed)
     slm_max_tokens: int = 150                 # Keep responses short
     slm_temperature: float = 0.3             # Lower = faster, more deterministic
     slm_cache_enabled: bool = True

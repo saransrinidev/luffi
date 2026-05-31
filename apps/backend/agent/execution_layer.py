@@ -4,9 +4,10 @@ Executes actions using PyAutoGUI with human-like mouse movement.
 """
 import logging
 import time
+import random
 import subprocess
 import pyautogui
-from services.mouse_service import human_click, human_move
+from services.mouse_service import human_click, human_move, human_type
 from agent.template_engine import ActionStep
 
 logger = logging.getLogger(__name__)
@@ -69,13 +70,13 @@ class ExecutionLayer:
 
             elif action == "type":
                 text = params.get("text", "")
-                time.sleep(0.1)
+                time.sleep(random.uniform(0.3, 0.6))  # pause before typing
                 if not text.isascii():
                     import pyperclip
                     pyperclip.copy(text)
                     pyautogui.hotkey("ctrl", "v")
                 else:
-                    pyautogui.typewrite(text, interval=0.02)
+                    human_type(text)  # human-like variable typing
                 return ExecutionResult(True, f"typed '{text[:30]}'")
 
             elif action == "key":
@@ -174,7 +175,7 @@ class ExecutionLayer:
             return ExecutionResult(False, f"launch failed: {e}")
 
     def execute_sequence(self, steps: list[ActionStep], on_step=None) -> list[ExecutionResult]:
-        """Execute a sequence of steps."""
+        """Execute a sequence of steps with human-like pauses between them."""
         results = []
         for i, step in enumerate(steps):
             if on_step:
@@ -187,5 +188,9 @@ class ExecutionLayer:
                 break
             if step.action == "done":
                 break
+
+            # Human-like pause between actions (thinking/moving time)
+            if step.action not in ("wait", "done"):
+                time.sleep(random.uniform(0.3, 0.7))
 
         return results
