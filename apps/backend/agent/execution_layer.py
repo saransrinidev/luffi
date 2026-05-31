@@ -1,6 +1,7 @@
 """
 Layer 6: Execution Layer
 Executes actions using PyAutoGUI with human-like mouse movement.
+App launching is done the human way — taskbar click or Windows search.
 """
 import logging
 import time
@@ -8,6 +9,7 @@ import random
 import subprocess
 import pyautogui
 from services.mouse_service import human_click, human_move, human_type
+from services.launcher_service import LauncherService
 from agent.template_engine import ActionStep
 
 logger = logging.getLogger(__name__)
@@ -47,6 +49,7 @@ class ExecutionLayer:
     def __init__(self):
         from services.desktop_service import DesktopService
         self.desktop = DesktopService()
+        self.launcher = LauncherService()
 
     def execute_step(self, step: ActionStep) -> ExecutionResult:
         """Execute a single action step."""
@@ -147,32 +150,9 @@ class ExecutionLayer:
         return ExecutionResult(False, f"button '{name}' not found")
 
     def _launch(self, app: str) -> ExecutionResult:
-        """Launch an application and wait for it."""
-        import ctypes
-
-        app_lower = app.lower().strip()
-        exe = APP_MAP.get(app_lower, app_lower)
-
-        try:
-            subprocess.Popen(f"start {exe}", shell=True)
-
-            # Wait for foreground window to change
-            for _ in range(12):
-                time.sleep(0.5)
-                hwnd = ctypes.windll.user32.GetForegroundWindow()
-                length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
-                buf = ctypes.create_unicode_buffer(length + 1)
-                ctypes.windll.user32.GetWindowTextW(hwnd, buf, length + 1)
-                title = buf.value.lower()
-                if app_lower in title or exe.lower() in title:
-                    time.sleep(0.5)
-                    return ExecutionResult(True, f"launched {app}")
-
-            time.sleep(1)
-            return ExecutionResult(True, f"launched {app} (waited)")
-
-        except Exception as e:
-            return ExecutionResult(False, f"launch failed: {e}")
+        """Launch an app the human way — taskbar click or Windows search."""
+        result = self.launcher.open_app(app)
+        return ExecutionResult(result.success, result.message)
 
     def execute_sequence(self, steps: list[ActionStep], on_step=None) -> list[ExecutionResult]:
         """Execute a sequence of steps with human-like pauses between them."""
