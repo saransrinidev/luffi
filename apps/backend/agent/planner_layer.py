@@ -115,11 +115,63 @@ class PlannerLayer:
             resp.raise_for_status()
             raw = resp.json().get("response", "").strip()
             logger.info(f"Planner raw: {raw[:300]}")
-            return self._parse_plan(raw)
+            steps = self._parse_plan(raw)
+            # Post-process: inject focus actions to make typing reliable
+            steps = self._inject_focus(steps, command)
+            return steps
 
         except Exception as e:
             logger.error(f"Planner failed: {e}")
             return []
+
+    def _inject_focus(self, steps: list, command: str) -> list:
+        """
+        Smart post-processing: inject focus actions so typing lands in the right place.
+        
+        Rules:
+        - After open_app(browser) and before type → inject press(ctrl+l)
+        - After open_app(notepad) → typing goes there automatically (no injection needed)
+        - After press(ctrl+s) and before save_file → add a short wait
+        """
+        if not steps:
+            return steps
+
+        BROWSERS = {"firefox", "chrome", "edge", "browser"}
+        result = []
+        prev_was_browser_open = False
+
+        for i, step in enumerate(steps):
+            # Track if we just opened a browser
+            if step.skill == "open_app" and step.params.get("app", "").lower() in BROWSERS:
+                result.append(step)
+                # Inject: wait for browser to load, then focus address bar
+                result.append(PlannerStep("wait", {"condition": "browser loaded", "seconds": "1.5"}))
+                result.append(PlannerStep("press", {"key": "ctrl+l"}))
+                result.append(PlannerStep("wait", {"condition": "address bar focused", "seconds": "0.3"}))
+                prev_was_browser_open = True
+                continue
+
+            # If the LLM already added press(ctrl+l) after browser, skip duplicate
+            if prev_was_browser_open and step.skill == "press" and step.params.get("key") == "ctrl+l":
+                prev_was_browser_open = False
+                continue
+
+            # After open_app(notepad), add a small wait before typing
+            if step.skill == "open_app" and step.params.get("app", "").lower() in ("notepad", "code", "vscode"):
+                result.append(step)
+                result.append(PlannerStep("wait", {"condition": "app ready", "seconds": "1"}))
+                continue
+
+            # After press(ctrl+s), add wait for save dialog
+            if step.skill == "press" and step.params.get("key") == "ctrl+s":
+                result.append(step)
+                result.append(PlannerStep("wait", {"condition": "save dialog", "seconds": "1"}))
+                continue
+
+            prev_was_browser_open = False
+            result.append(step)
+
+        return result
 
     def _parse_plan(self, raw: str) -> list[PlannerStep]:
         """Extract the JSON array of skills from LLM output.

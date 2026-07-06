@@ -85,8 +85,9 @@ class SkillExecutor:
 
             elif skill == "wait":
                 cond = p.get("condition", "")
-                time.sleep(1.5)
-                return SkillResult(True, f"waited ({cond})")
+                secs = float(p.get("seconds", 1.5))
+                time.sleep(secs)
+                return SkillResult(True, f"waited {secs}s ({cond})")
 
             else:
                 return SkillResult(False, f"unknown skill: {skill}")

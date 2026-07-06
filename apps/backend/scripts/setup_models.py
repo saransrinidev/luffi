@@ -3,9 +3,9 @@ import subprocess
 import sys
 
 MODELS = [
-    "llama3.2:1b",   # Fast tier — simple lookups, translations
-    "llama3.2:3b",   # Medium tier — explanations
-    "qwen2.5:7b",   # Agent tier — desktop automation, structured output
+    "llama3.2:1b",      # Fast tier — simple lookups, translations
+    "llama3.2:3b",      # Medium tier — explanations
+    "qwen2.5vl:7b",     # Vision + text tier — agent, screen understanding
 ]
 
 
